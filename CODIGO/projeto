@@ -1,0 +1,197 @@
+import random
+import time
+
+
+class EstacaoEspacial:
+    """Simula uma estação espacial em órbita enfrentando eventos aleatórios."""
+
+    def __init__(self, nome: str = "Aurora-IX", dias_meta: int = 10) -> None:
+        self.nome = nome
+        self.dias_meta = dias_meta
+        self.dia = 1
+        self.casco = 100
+        self.energia = 100
+        self.oxigenio = 100
+        self.moral = 100
+        self.creditos = 500
+        self.log_eventos: list[str] = []
+
+    def _limitar_status(self) -> None:
+        self.casco = max(0, min(100, self.casco))
+        self.energia = max(0, min(100, self.energia))
+        self.oxigenio = max(0, min(100, self.oxigenio))
+        self.moral = max(0, min(100, self.moral))
+
+    def exibir_painel(self) -> None:
+        print("\n" + "=" * 54)
+        print(f" ESTAÇÃO {self.nome.upper()} | DIA {self.dia}/{self.dias_meta} ")
+        print("=" * 54)
+        print(f" Casco    : {self._barra(self.casco)} {self.casco:3d}%")
+        print(f" Energia  : {self._barra(self.energia)} {self.energia:3d}%")
+        print(f" Oxigênio : {self._barra(self.oxigenio)} {self.oxigenio:3d}%")
+        print(f" Moral    : {self._barra(self.moral)} {self.moral:3d}%")
+        print(f" Créditos : {self.creditos} CR")
+        print("-" * 54)
+
+    @staticmethod
+    def _barra(valor: int, tamanho: int = 20) -> str:
+        preenchido = int((valor / 100) * tamanho)
+        return "[" + "#" * preenchido + "-" * (tamanho - preenchido) + "]"
+
+    def consumo_diario(self) -> None:
+        gasto_energia = random.randint(6, 12)
+        gasto_oxigenio = random.randint(5, 11)
+        self.energia -= gasto_energia
+        self.oxigenio -= gasto_oxigenio
+        self.log_eventos.append(
+            f"Dia {self.dia}: Consumo rotineiro (-{gasto_energia}% energia, -{gasto_oxigenio}% oxigênio)."
+        )
+
+    def evento_aleatorio(self) -> None:
+        eventos = [
+            self._evento_chuva_meteoros,
+            self._evento_tempestade_solar,
+            self._evento_vazamento_modulo,
+            self._evento_sinal_misterioso,
+            self._evento_festa_tripulacao,
+            self._evento_falha_reciclador,
+        ]
+        escolhido = random.choice(eventos)
+        escolhido()
+
+    def _evento_chuva_meteoros(self) -> None:
+        dano = random.randint(8, 22)
+        self.casco -= dano
+        msg = f"Chuva de micrometeoritos atingiu o setor externo (-{dano}% casco)."
+        print(f"[ALERTA] {msg}")
+        self.log_eventos.append(f"Dia {self.dia}: {msg}")
+
+    def _evento_tempestade_solar(self) -> None:
+        perda = random.randint(10, 24)
+        self.energia -= perda
+        self.moral -= 5
+        msg = f"Tempestade solar sobrecarregou os painéis (-{perda}% energia, -5% moral)."
+        print(f"[ALERTA] {msg}")
+        self.log_eventos.append(f"Dia {self.dia}: {msg}")
+
+    def _evento_vazamento_modulo(self) -> None:
+        perda_o2 = random.randint(8, 18)
+        self.oxigenio -= perda_o2
+        msg = f"Microfissura no módulo de cultivo reduziu o oxigênio (-{perda_o2}% oxigênio)."
+        print(f"[ALERTA] {msg}")
+        self.log_eventos.append(f"Dia {self.dia}: {msg}")
+
+    def _evento_sinal_misterioso(self) -> None:
+        ganho_cr = random.randint(80, 220)
+        ganho_moral = random.randint(5, 15)
+        self.creditos += ganho_cr
+        self.moral += ganho_moral
+        msg = f"Sonda abandonada transmitiu dados valiosos (+{ganho_cr} CR, +{ganho_moral}% moral)."
+        print(f"[DESCOBERTA] {msg}")
+        self.log_eventos.append(f"Dia {self.dia}: {msg}")
+
+    def _evento_festa_tripulacao(self) -> None:
+        ganho_moral = random.randint(10, 20)
+        gasto_o2 = random.randint(3, 7)
+        self.moral += ganho_moral
+        self.oxigenio -= gasto_o2
+        msg = f"Noite de cinema na cúpula elevou o moral (+{ganho_moral}% moral, -{gasto_o2}% oxigênio)."
+        print(f"[TRIPULAÇÃO] {msg}")
+        self.log_eventos.append(f"Dia {self.dia}: {msg}")
+
+    def _evento_falha_reciclador(self) -> None:
+        ganho_o2 = random.randint(8, 16)
+        ganho_en = random.randint(6, 14)
+        self.oxigenio += ganho_o2
+        self.energia += ganho_en
+        msg = f"Atualização de firmware otimizou o suporte vital (+{ganho_o2}% oxigênio, +{ganho_en}% energia)."
+        print(f"[ENGENHARIA] {msg}")
+        self.log_eventos.append(f"Dia {self.dia}: {msg}")
+
+    def aplicar_acao(self, escolha: str) -> None:
+        if escolha == "1":
+            custo = 120
+            if self.creditos >= custo:
+                self.creditos -= custo
+                reparo = random.randint(18, 30)
+                self.casco += reparo
+                print(f"Reparos concluídos: +{reparo}% de casco.")
+            else:
+                print("Créditos insuficientes para reparar o casco.")
+        elif escolha == "2":
+            geracao = random.randint(18, 28)
+            self.energia += geracao
+            self.moral -= 6
+            print(f"Geradores auxiliares ativados: +{geracao}% de energia (-6% moral por ruído).")
+        elif escolha == "3":
+            recuperacao = random.randint(16, 26)
+            self.oxigenio += recuperacao
+            self.energia -= 8
+            print(f"Reservas de O2 pressurizadas: +{recuperacao}% de oxigênio (-8% energia).")
+        elif escolha == "4":
+            bonus_cr = random.randint(70, 160)
+            self.creditos += bonus_cr
+            self.moral += random.randint(4, 10)
+            print(f"Experimentos científicos vendidos à Terra: +{bonus_cr} CR.")
+        else:
+            print("Opção inválida. A tripulação manteve o protocolo padrão.")
+
+    def verificar_falha_critica(self) -> str | None:
+        if self.casco <= 0:
+            return "O casco da estação sofreu descompressão crítica!"
+        if self.energia <= 0:
+            return "A estação perdeu toda a energia e os sistemas falharam!"
+        if self.oxigenio <= 0:
+            return "Os níveis de oxigênio chegaram a zero!"
+        if self.moral <= 0:
+            return "A tripulação entrou em motim e abandonou os postos!"
+        return None
+
+    def executar(self, modo_automatico: bool = False, atraso: float = 0.2) -> None:
+        print(f"Iniciando missão na estação {self.nome}...")
+        while self.dia <= self.dias_meta:
+            self.exibir_painel()
+            self.consumo_diario()
+            self.evento_aleatorio()
+            self._limitar_status()
+
+            falha = self.verificar_falha_critica()
+            if falha:
+                print(f"\n[FIM DE JOGO] {falha}")
+                break
+
+            if modo_automatico:
+                acao = random.choice(["1", "2", "3", "4"])
+                print(f"[IA DA ESTAÇÃO] Escolheu a ação '{acao}'.")
+            else:
+                print("\nAções disponíveis:")
+                print("  [1] Reparar casco (120 CR)")
+                print("  [2] Sobrecarregar geradores (+Energia, -Moral)")
+                print("  [3] Pressurizar O2 (+Oxigênio, -Energia)")
+                print("  [4] Enviar dados científicos (+Créditos, +Moral)")
+                acao = input("Escolha uma ação (1-4): ").strip()
+
+            self.aplicar_acao(acao)
+            self._limitar_status()
+
+            falha_pos = self.verificar_falha_critica()
+            if falha_pos:
+                print(f"\n[FIM DE JOGO] {falha_pos}")
+                break
+
+            self.dia += 1
+            time.sleep(atraso)
+
+        else:
+            self.exibir_painel()
+            print(f"\n[VITÓRIA] A estação {self.nome} completou os {self.dias_meta} dias em órbita!")
+
+        print("\n--- Resumo do Diário de Bordo ---")
+        for entrada in self.log_eventos[-6:]:
+            print(" *", entrada)
+
+
+if __name__ == "__main__":
+    # Mude modo_automatico=False para jogar digitando as escolhas no terminal
+    estacao = EstacaoEspacial(nome="Aurora-IX", dias_meta=10)
+    estacao.executar(modo_automatico=True, atraso=0.05)
